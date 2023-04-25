@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 
-import useRegisterModal from "../../hooks/useRegisterModal";
+import useLoginModal from "../../hooks/useLoginModal";
 import Modal from "./Modal";
 import Heading from "../Heading";
 import Input from "../input/Input";
@@ -14,8 +13,12 @@ import Button from "../Button";
 import { FcGoogle } from "react-icons/fc";
 import { AiFillGithub } from "react-icons/ai";
 
-const RegisterModal = () => {
-  const registerModal = useRegisterModal();
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+const LoginModal = () => {
+  const router = useRouter();
+  const loginModal = useLoginModal();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -24,7 +27,6 @@ const RegisterModal = () => {
     formState: { errors },
   } = useForm<FieldValues>({
     defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
@@ -33,31 +35,30 @@ const RegisterModal = () => {
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
 
-    axios
-      .post("/api/register", data)
-      .then(() => {
-        registerModal.onClose();
-      })
-      .catch((error) => {
-        toast.error(error.message);
-      })
-      .finally(() => setIsLoading(false));
+    signIn("credentials", {
+      ...data,
+      redirect: false,
+    }).then((callback) => {
+      setIsLoading(false);
+      if (callback?.ok) {
+        toast.success("Logged in");
+        router.refresh();
+        loginModal.onClose();
+      }
+
+      if (callback?.error) {
+        toast.error(callback.error);
+      }
+    });
   };
 
   const bodyContent = (
     <div className="flex flex-col gap-4">
-      <Heading title="Welcome to Airbnb" subtitle="Create an account!" />
+      <Heading title="Welcome back" subtitle="Login to your account" />
       <Input
         id="email"
+        type="email"
         label="Email"
-        disabled={isLoading}
-        register={register}
-        errors={errors}
-        required
-      />
-      <Input
-        id="name"
-        label="Name"
         disabled={isLoading}
         register={register}
         errors={errors}
@@ -82,25 +83,32 @@ const RegisterModal = () => {
         outline
         label="Continue with Google"
         icon={FcGoogle}
-        onClick={() => {}}
+        onClick={() => signIn("google")}
       />
       <Button
         outline
         label="Continue with Github"
         icon={AiFillGithub}
-        onClick={() => {}}
+        onClick={() => signIn("github")}
       />
-      <div className="text-neutral-500 text-center mt-4 font-light">
-        <div className="flex flex-row items-center p-2 justify-center">
-          <div>Already have an account?</div>
-          <div
-            className="text-neutral-800 cursor-pointer hover:underline"
-            onClick={registerModal.onClose}
+      <div
+        className="
+      text-neutral-500 text-center mt-4 font-light"
+      >
+        <p>
+          First time using Airbnb?
+          <span
+            // onClick={onToggle}
+            className="
+              text-neutral-800
+              cursor-pointer 
+              hover:underline
+            "
           >
             {" "}
-            Log In
-          </div>
-        </div>
+            Create an account
+          </span>
+        </p>
       </div>
     </div>
   );
@@ -108,10 +116,10 @@ const RegisterModal = () => {
   return (
     <Modal
       disabled={isLoading}
-      isOpen={registerModal.isOpen}
-      title="Register"
+      isOpen={loginModal.isOpen}
+      title="Login"
       actionLabel="Continue"
-      onClose={registerModal.onClose}
+      onClose={loginModal.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={bodyContent}
       footer={footerContent}
@@ -119,4 +127,4 @@ const RegisterModal = () => {
   );
 };
 
-export default RegisterModal;
+export default LoginModal;
