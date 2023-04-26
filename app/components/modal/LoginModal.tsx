@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 
 import useLoginModal from "../../hooks/useLoginModal";
+import useRegisterModal from "@/app/hooks/useRegisterModal";
 import Modal from "./Modal";
 import Heading from "../Heading";
 import Input from "../input/Input";
@@ -19,6 +20,7 @@ import { useRouter } from "next/navigation";
 const LoginModal = () => {
   const router = useRouter();
   const loginModal = useLoginModal();
+  const registerModal = useRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -31,6 +33,11 @@ const LoginModal = () => {
       password: "",
     },
   });
+
+  const onToggle = useCallback(() => {
+    loginModal.onClose();
+    registerModal.onOpen();
+  }, [loginModal, registerModal]);
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
@@ -98,7 +105,7 @@ const LoginModal = () => {
         <p>
           First time using Airbnb?
           <span
-            // onClick={onToggle}
+            onClick={onToggle}
             className="
               text-neutral-800
               cursor-pointer 

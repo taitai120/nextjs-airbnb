@@ -7,6 +7,7 @@ import ToasterProvider from "./providers/ToasterProvider";
 import LoginModal from "./components/modal/LoginModal";
 import getCurrentUser from "./actions/getCurrentUser";
 import { useEffect } from "react";
+import RentModal from "./components/modal/RentModal";
 
 export const metadata = {
   title: "Create Next App",
@@ -29,6 +30,7 @@ export default async function RootLayout({
       <body className={font.className}>
         <ClientOnly>
           <ToasterProvider />
+          <RentModal />
           <LoginModal />
           <RegisterModal />
           <Navbar currentUser={currentUser} />
